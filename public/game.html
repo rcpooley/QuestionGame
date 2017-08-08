@@ -9,6 +9,10 @@
             display: none;
         }
 
+        .state0 {
+            text-align: center;
+        }
+
         .question {
             background-color: #6ed777;
         }
@@ -26,13 +30,12 @@
 </head>
 <body>
 <div class="leavegame">
-    <form action="leavegame" method="post">
+    <form action="/leavegame" method="post">
         <input type="submit" value="Leave"/>
     </form>
 </div>
-Game: <span class="gamename"></span><br>
 <div class="state state0">
-    Waiting for the host to start the game
+
 </div>
 <div class="state state1">
     <div id="myquestions"></div>
@@ -67,7 +70,7 @@ Game: <span class="gamename"></span><br>
         setState(data.state);
 
         if (data.state == 0) {
-            if (data.owner) {
+            if (data.owner && false) {
                 $('.state0').append('<br><input type="button" value="Start Game"/>');
                 $('.state0').find('input').click(function () {
                     socket.emit('startgame', '');

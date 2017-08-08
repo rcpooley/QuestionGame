@@ -21,12 +21,11 @@ app.use(session);
 
 //Game functions
 var games = [];
-function Game(name, numQuestions, owner) {
+function Game(owner) {
     var _this = this;
 
     _this.id = shortid.generate();
-    _this.name = name;
-    _this.numQuestions = numQuestions;
+    _this.numQuestions = 5;
     _this.owner = owner;
     _this.state = 0;
     _this.players = {};
@@ -90,7 +89,6 @@ function Game(name, numQuestions, owner) {
     _this.export = function () {
         return {
             id: _this.id,
-            name: _this.name,
             numQuestions: _this.numQuestions,
             state: _this.state,
             final: _this.final
@@ -214,16 +212,36 @@ app.get('*', function (req, res) {
     var url = req.url.split('?')[0];
     if (url === '/')url += 'index.html';
 
-    if (url == '/game.html') {
-        var id = req.query.id;
-        if (!id || sess.gameid != id) {
+    if (url == '/pregame.html') {
+        if (!sess.gameid) {
             return res.redirect('/index.html');
+        }
+
+        var game = getGameById(sess.gameid);
+        if (game.state != 0) {
+            return res.redirect('/game.html');
+        }
+    }
+
+    if (url == '/game.html') {
+        if (!sess.gameid) {
+            return res.redirect('/index.html');
+        }
+
+        var game = getGameById(sess.gameid);
+        if (game.state == 0) {
+            return res.redirect('/pregame.html');
         }
     }
 
     if (url == '/index.html') {
         if (sess.gameid) {
-            return res.redirect('/game.html?id=' + sess.gameid);
+            var game = getGameById(sess.gameid);
+            if (game.state == 0) {
+                return res.redirect('/pregame.html');
+            } else {
+                return res.redirect('/game.html');
+            }
         }
     }
 
