@@ -1,0 +1,46 @@
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Question Game</title>
+    <script src="jquery-3.2.1.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+<form action="newgame" method="post">
+    <input type="text" name="gamename" placeholder="Game Name"/>
+    <input tpye="text" name="numQuestions" placeholder="Number of Questions"/>
+    <input type="submit" value="Create Game"/>
+</form>
+<table id="gametbl">
+    <tr>
+        <th>Game Name</th>
+        <th>Join</th>
+    </tr>
+</table>
+<script>
+    var socket = io();
+    socket.emit('type', 'lobby');
+
+    socket.on('games', function (games) {
+        var tbl = $('#gametbl')[0];
+
+        while (tbl.rows.length > 1) {
+            tbl.deleteRow(tbl.rows.length - 1);
+        }
+
+        for (var i = 0; i < games.length; i++) {
+            const gm = games[i];
+
+            var row = tbl.insertRow(-1);
+            $(row.insertCell(-1)).html(gm.name);
+            var $cell = $(row.insertCell(-1)).html('<input type="button" value="Join"/>');
+            $cell.find('input').click(function () {
+                socket.emit('joingame', gm.id, function (url) {
+                    window.location.href = url;
+                });
+            });
+        }
+    });
+</script>
+</body>
+</html>

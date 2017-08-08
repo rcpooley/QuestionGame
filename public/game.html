@@ -1,0 +1,123 @@
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Question Game</title>
+    <script src="jquery-3.2.1.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        .state {
+            display: none;
+        }
+
+        .question {
+            background-color: #6ed777;
+        }
+
+        .answer {
+            background-color: #8ec3d7;
+        }
+
+        .leavegame {
+            position: absolute;
+            top: 0;
+            right: 0;
+        }
+    </style>
+</head>
+<body>
+<div class="leavegame">
+    <form action="leavegame" method="post">
+        <input type="submit" value="Leave"/>
+    </form>
+</div>
+Game: <span class="gamename"></span><br>
+<div class="state state0">
+    Waiting for the host to start the game
+</div>
+<div class="state state1">
+    <div id="myquestions"></div>
+    <div id="inputfields">
+        <input type="text" id="inputtext" placeholder="Type in a question"/>
+        <input type="button" id="gobutton" value="Go"/>
+    </div>
+</div>
+<div class="state state2">
+    Everyone is finished!
+</div>
+
+<script>
+    var $inputtext = $('#inputtext');
+    var $inputfields = $('#inputfields');
+    var $myquestions = $('#myquestions');
+
+    function setState(state) {
+        $('.state').css('display', 'none');
+        $('.state' + state).css('display', 'block');
+    }
+
+    var socket = io();
+    socket.emit('type', 'game');
+
+    var final;
+
+    socket.on('gamedata', function (data) {
+        console.log('got', data);
+        $('.gamename').html(data.name);
+
+        setState(data.state);
+
+        if (data.state == 0) {
+            if (data.owner) {
+                $('.state0').append('<br><input type="button" value="Start Game"/>');
+                $('.state0').find('input').click(function () {
+                    socket.emit('startgame', '');
+                });
+            }
+        } else if (data.state == 1) {
+            $myquestions.html('');
+            for (var i = 0; i < data.questions.length; i++) {
+                $myquestions.append('<div class="question">' + data.questions[i] + '</div>');
+                if (i < data.answers.length) {
+                    $myquestions.append('<div class="answer">' + data.answers[i] + '</div>');
+                }
+            }
+
+            if (data.answers.length == data.numQuestions) {
+                $inputfields.html('You have typed in all your questions and answers! Please wait for everyone else');
+            } else if (data.questions.length > data.answers.length) {
+                $inputtext.attr('placeholder', 'Type in an answer');
+            } else {
+                $inputtext.attr('placeholder', 'Type in a question');
+            }
+        }  else if (data.state == 2) {
+            final = data.final;
+            if (data.owner) {
+                loadFinal();
+            }
+        }
+    });
+
+    $inputtext.keydown(function (e) {
+        if (e.which == 13) {
+            sendText();
+        }
+    });
+    $('#gobutton').click(sendText);
+
+    function sendText() {
+        var txt = $inputtext.val();
+        $inputtext.val('');
+        socket.emit('text', txt);
+    }
+
+    function loadFinal() {
+        var $state2 = $('.state2');
+        $state2.html('');
+        for (var i = 0; i < final.length; i++) {
+            $state2.append('<div class="question">' + final[i].q + '</div>');
+            $state2.append('<div class="answer">' + final[i].a + '</div>');
+        }
+    }
+</script>
+</body>
+</html>
