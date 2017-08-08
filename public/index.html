@@ -4,20 +4,73 @@
     <title>Question Game</title>
     <script src="jquery-3.2.1.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
+    <style>
+        .tcell {
+            display: table-cell;
+            vertical-align: middle;
+        }
+
+        .state {
+            display: none;
+        }
+
+        .state0 .title {
+            text-align: center;
+            font-size: 40px;
+        }
+
+        .state0 .buttons {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .state0 .buttons .button {
+            display: table;
+            text-align: center;
+            background: #6784d7;
+            width: 200px;
+            height: 50px;
+            margin: 10px;
+            cursor: default;
+        }
+
+        .state0 .buttons .button:hover {
+            background: #4c609c;
+        }
+    </style>
 </head>
 <body>
-<form action="newgame" method="post">
-    <input type="text" name="gamename" placeholder="Game Name"/>
-    <input tpye="text" name="numQuestions" placeholder="Number of Questions"/>
-    <input type="submit" value="Create Game"/>
-</form>
-<table id="gametbl">
-    <tr>
-        <th>Game Name</th>
-        <th>Join</th>
-    </tr>
-</table>
+<div class="state state0">
+    <div class="title">Question Game</div>
+    <div class="buttons">
+        <div class="button create"><div class="tcell">Create Game</div></div>
+        <div class="button join"><div class="tcell">Join Game</div></div>
+    </div>
+</div>
+<div class="state state1">
+    <form action="newgame" method="post">
+        <input type="text" name="gamename" placeholder="Game Name"/>
+        <input type="text" name="numQuestions" placeholder="Number of Questions"/>
+        <input type="submit" value="Create Game"/>
+    </form>
+</div>
+<div class="state state2">
+    <table id="gametbl">
+        <tr>
+            <th>Game Name</th>
+            <th>Join</th>
+        </tr>
+    </table>
+</div>
 <script>
+    function setState(state) {
+        $('.state').css('display', 'none');
+        $('.state' + state).css('display', 'block');
+    }
+    setState(0);
+
     var socket = io();
     socket.emit('type', 'lobby');
 
@@ -40,6 +93,14 @@
                 });
             });
         }
+    });
+
+    //Setup events
+    $('.button.create').click(function () {
+        setState(1);
+    });
+    $('.button.join').click(function () {
+        setState(2);
     });
 </script>
 </body>

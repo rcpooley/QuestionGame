@@ -1,3 +1,5 @@
+console.log('Loading...');
+
 var app = require('express')();
 var http = require('http').Server(app);
 var bodyParser = require('body-parser');
